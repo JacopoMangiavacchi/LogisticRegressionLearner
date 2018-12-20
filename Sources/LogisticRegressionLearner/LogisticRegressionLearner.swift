@@ -22,23 +22,24 @@ public struct LogisticRegressionLearner : LearnerProtocol {
     public func train(trainFeatures: MatrixDataFloat, testFeatures: MatrixDataFloat, trainLabels: [[Int]], testLabels: [[Int]]) throws -> (trainResult: TrainResult, modelData: Data) {
         //TODO: Guard if multi labels but info.multiLabels = false throw error
 
-        //Training
-        let regression = LogisticRegression()
-        regression.normalization = true
+        //Converting data
         let xMat = trainFeatures.map{$0.map(Double.init)}
         let yVec = trainLabels.map{Double($0[0])}
+        let testXMat = testFeatures.map{$0.map(Double.init)}
+        let test_y = testLabels.map{Double($0[0])}
+
+        //Training
+        let regression = LogisticRegression()
+        regression.normalization = false
         regression.train(xMat: xMat, yVec: yVec, learningRate: 0.1, maxSteps: 10000)
 
         //Validation
-        let testXMat = testFeatures.map{$0.map(Double.init)}
-        let test_y = testLabels.map{Double($0[0])}
         let pred_y = regression.predict(xMat: testXMat)
 
         //Get Result
+        let cost = regression.cost(trueVec: yVec, predictedVec: regression.predict(xMat: xMat))
         let distance = Euclidean.distance(pred_y, test_y)
-        let cost = regression.cost(trueVec: test_y, predictedVec: pred_y)
-        print("Euclidean distance: \(distance) - Cost: \(cost)")
-        let result = TrainResult(f1: Float(distance), microAvgAccuracy: Float(cost), macroAvgAccuracy: Float(cost), precision: [Float](), recall: [Float]())
+        let result = TrainResult(cost: Float(cost), euclideanDistance: Float(distance))
 
         //Get Weights
         let modelData = regression.weights.withUnsafeBufferPointer { buffer -> Data in
