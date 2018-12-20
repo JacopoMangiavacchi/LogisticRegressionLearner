@@ -12,7 +12,7 @@ let package = Package(
             targets: ["LogisticRegressionLearner"]),
     ],
     dependencies: [
-        .package(url: "https://__TOKEN__:x-oauth-basic@github.com/JacopoMangiavacchi/SwiftPipeline.git", from: "0.1.3"),
+        .package(url: "https://__token__:x-oauth-basic@github.com/JacopoMangiavacchi/SwiftPipeline.git", from: "0.1.4"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
