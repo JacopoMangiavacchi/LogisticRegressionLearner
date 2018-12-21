@@ -41,6 +41,8 @@ public struct LogisticRegressionLearner : LearnerProtocol {
         let distance = Euclidean.distance(pred_y, test_y)
         let result = TrainResult(cost: Float(cost), euclideanDistance: Float(distance))
 
+        //TODO: weights Quantization / Compression
+
         //Get Weights
         let modelData = regression.weights.withUnsafeBufferPointer { buffer -> Data in
             return Data(buffer: buffer)
@@ -50,17 +52,29 @@ public struct LogisticRegressionLearner : LearnerProtocol {
     }
 
     public func predict(modelData: Data, features: MatrixDataFloat) throws -> PredictResult {
-        //TODO: Predict
+        let regression = LogisticRegression()
 
-        //print("=== Predict with: \(String(decoding: modelData, as: UTF8.self))")
+        //Converting data
+        let xMat = features.map{$0.map(Double.init)}
+
+        //TODO: weights De-Quantization / Decompression
+
+        //Set Weights
+        regression.normalization = false
+        regression.weights = modelData.withUnsafeBytes {
+            [Double](UnsafeBufferPointer<Double>(start: $0, count: modelData.count / MemoryLayout<Double>.size))
+        }
+
+        //Predict
+        let pred_y = regression.predict(xMat: xMat)
 
         var labels = [[Int]]()
         var confidences = [[Float]]()
 
-        for _ in 0..<features.count {
+        for i in 0..<features.count {
             labels.append([0, 1])
-            let r = Float.random(in: 0..<1)
-            confidences.append([r, 1.0 - r])
+            let r = Float(pred_y[i])
+            confidences.append([1.0 - r, r])
         }
 
         return PredictResult(labels: labels, confidences: confidences)
